@@ -1,0 +1,51 @@
+# ROI Lens v2 Global Settings
+
+simulation:
+  num_users: 15000
+  bot_percentage: 0.12
+  start_date: "2023-01-01"
+  end_date: "2023-12-31"
+
+channels:
+  - "Instagram"
+  - "Google Search"
+  - "YouTube"
+  - "Influencer Networks"
+  - "E-commerce Marketplaces"
+  - "TikTok"
+  - "Programmatic Display"
+
+personas:
+  Gen-Z Trend Seekers:
+    probability: 0.3
+    affinity: ["Instagram", "TikTok", "Influencer Networks"]
+    base_conversion_rate: 0.08
+    ltv_multiplier: 1.2
+  Budget Parents:
+    probability: 0.25
+    affinity: ["Google Search", "E-commerce Marketplaces"]
+    base_conversion_rate: 0.05
+    ltv_multiplier: 1.5
+  Premium Fitness Users:
+    probability: 0.2
+    affinity: ["YouTube", "Instagram", "Influencer Networks"]
+    base_conversion_rate: 0.10
+    ltv_multiplier: 2.5
+  Impulse Buyers:
+    probability: 0.25
+    affinity: ["TikTok", "Instagram"]
+    base_conversion_rate: 0.12
+    ltv_multiplier: 0.8
+
+geographies:
+  - "Tier-1 Cities"
+  - "Tier-2 Cities"
+  - "Tier-3 Cities"
+  - "International"
+
+attribution:
+  time_decay_lambda: 0.1  # Higher = faster decay
+  fatigue_k: 0.05
+
+budget:
+  total_inr: 100000000  # 100 Crore
