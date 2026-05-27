@@ -7,8 +7,6 @@ import xgboost as xgb
 import shap
 import json
 import ast
-import matplotlib.pyplot as plt
-
 st.set_page_config(page_title="ROI Lens | Enterprise AI Intelligence", layout="wide")
 
 # --- CSS ---
