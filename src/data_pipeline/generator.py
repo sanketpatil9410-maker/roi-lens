@@ -149,6 +149,42 @@ def generate_data():
     df_spend.to_csv('data/raw/campaign_spend.csv', index=False)
     
     print("Mock data generated successfully.")
+    generate_time_series(config)
+
+def generate_time_series(config, days=365):
+    print(f"Generating MMM Time Series Data for {days} days...")
+    dates = pd.date_range(end=pd.Timestamp.today().normalize(), periods=days)
+    data = {'date': dates}
+    
+    # Base conversion rate with some seasonality (sine wave)
+    seasonality = np.sin(np.linspace(0, 4*np.pi, days)) * 200 + 500
+    total_conversions = seasonality
+    
+    # Generate daily spend per channel and its contribution to conversions
+    for channel in config['channels']:
+        # Random walk for spend
+        spend = np.random.normal(50000, 10000, days)
+        spend = np.maximum(spend, 1000) # prevent negative spend
+        data[f'{channel}_spend'] = spend
+        
+        # Simulated True ROI multiplier
+        true_roi = np.random.uniform(1.0, 3.5)
+        
+        # Adstock Effect (Carryover)
+        adstock = np.zeros(days)
+        adstock[0] = spend[0]
+        decay_rate = np.random.uniform(0.3, 0.7)
+        for t in range(1, days):
+            adstock[t] = spend[t] + adstock[t-1] * decay_rate
+            
+        diminishing = np.log1p(adstock)
+        total_conversions += diminishing * true_roi * 10
+        
+    data['total_conversions'] = total_conversions.astype(int)
+    
+    df = pd.DataFrame(data)
+    df.to_csv('data/raw/daily_marketing_time_series.csv', index=False)
+    print("MMM Time Series Generated!")
 
 if __name__ == '__main__':
     generate_data()

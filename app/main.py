@@ -37,7 +37,7 @@ def load_data():
 paths, attr, opt, features, xgb_model = load_data()
 
 st.sidebar.title("ROI Lens")
-page = st.sidebar.radio("Navigation", ["Executive Summary", "Persona Intelligence", "Bot & Fraud Detection", "Customer Journeys (Sankey)", "Predictive AI (SHAP)", "Counterfactual Simulator", "GenAI Marketing Copilot"])
+page = st.sidebar.radio("Navigation", ["Executive Summary", "Persona Intelligence", "Bot & Fraud Detection", "Customer Journeys (Sankey)", "Predictive AI (SHAP)", "Counterfactual Simulator", "Causal Inference (MMM)", "GenAI Marketing Copilot"])
 
 if paths is None:
     st.error("Enterprise Data not found. Please run the full pipeline.")
@@ -188,6 +188,36 @@ elif page == "Customer Journeys (Sankey)":
         
     except FileNotFoundError:
         st.warning("Run the Sequence Miner first to generate Journey Analytics.")
+
+elif page == "Causal Inference (MMM)":
+    st.title("⚖️ Causal Inference & Media Mix Modeling")
+    st.markdown("Move beyond attribution and calculate **True Incremental Causal ROI** using Adstock Decay and Ridge Regression on daily time-series data.")
+    
+    try:
+        ts_df = pd.read_csv('data/raw/daily_marketing_time_series.csv')
+        roi_df = pd.read_csv('data/processed/causal_roi.csv')
+        
+        st.subheader("Daily Marketing Time-Series (Adstock Memory)")
+        fig1 = px.line(ts_df, x='date', y=['total_conversions'], title="Simulated Daily Conversions over 365 Days")
+        fig1.update_layout(template="plotly_dark", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig1, use_container_width=True)
+        
+        st.subheader("Over-Attribution Detection: Markov vs. MMM")
+        comp_df = pd.merge(opt[['channel', 'spend_cr', 'Markov']], roi_df, on='channel')
+        # Calculate Markov ROI: (Markov Conversions * 2500 INR) / Total Spend
+        comp_df['Markov_ROI'] = (comp_df['Markov'] * 2500) / (comp_df['spend_cr'] * 10000000)
+        
+        fig2 = go.Figure(data=[
+            go.Bar(name='Attributed ROI (Markov)', x=comp_df['channel'], y=comp_df['Markov_ROI'], marker_color='#4A90E2'),
+            go.Bar(name='True Causal ROI (MMM)', x=comp_df['channel'], y=comp_df['causal_roi'], marker_color='#E91E63')
+        ])
+        fig2.update_layout(barmode='group', title="True ROI isolated by the MMM Engine", template="plotly_dark", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig2, use_container_width=True)
+        
+        st.info("💡 **Insight:** Traditional attribution (Markov/Shapley) often over-credits channels because it assumes every ad touched caused the sale. Causal MMM proves what sales were *incrementally driven* by the ad vs. what would have happened anyway.")
+        
+    except Exception as e:
+        st.error(f"Please run the generator and causal_mmm engine first. Error: {e}")
 
 elif page == "GenAI Marketing Copilot":
     st.title("🤖 GenAI Marketing Copilot")
