@@ -37,7 +37,7 @@ def load_data():
 paths, attr, opt, features, xgb_model = load_data()
 
 st.sidebar.title("ROI Lens")
-page = st.sidebar.radio("Navigation", ["Executive Summary", "Persona Intelligence", "Bot & Fraud Detection", "Customer Journeys (Sankey)", "Predictive AI (SHAP)", "Counterfactual Simulator"])
+page = st.sidebar.radio("Navigation", ["Executive Summary", "Persona Intelligence", "Bot & Fraud Detection", "Customer Journeys (Sankey)", "Predictive AI (SHAP)", "Counterfactual Simulator", "GenAI Marketing Copilot"])
 
 if paths is None:
     st.error("Enterprise Data not found. Please run the full pipeline.")
@@ -188,3 +188,62 @@ elif page == "Customer Journeys (Sankey)":
         
     except FileNotFoundError:
         st.warning("Run the Sequence Miner first to generate Journey Analytics.")
+
+elif page == "GenAI Marketing Copilot":
+    st.title("🤖 GenAI Marketing Copilot")
+    st.markdown("Your autonomous AI Chief Marketing Officer. Ask strategic questions about your budget, ROI, and customer journeys.")
+    
+    api_key = st.sidebar.text_input("Gemini API Key", type="password")
+    
+    if not api_key:
+        st.warning("Please enter your Google Gemini API Key in the sidebar to activate the Copilot.")
+    else:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+            
+        # Display chat messages from history on app rerun
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                
+        # Build Context String from Data
+        try:
+            top_paths = pd.read_csv('data/processed/top_converting_paths.csv')
+            top_path_str = top_paths.iloc[0]['Path']
+        except:
+            top_path_str = "Unknown"
+            
+        context = f"""
+        You are the ROI Lens AI Copilot. You are advising the marketing team.
+        Here is the current business data:
+        Total Budget: ₹100 Crore.
+        Detected Bot Traffic: 12%.
+        Current Estimated Revenue: ₹{opt['total_revenue'].sum()/1e6:.1f} Million.
+        Optimized Estimated Revenue: ₹{opt['optimized_revenue'].sum()/1e6:.1f} Million.
+        Top Converting Path: {top_path_str}
+        
+        Budget Allocation (Current vs Optimized in Crores):
+        {opt[['channel', 'spend_cr', 'optimized_spend_cr']].to_string(index=False)}
+        """
+        
+        # Accept user input
+        if prompt := st.chat_input("E.g., Which channel should I cut budget from?"):
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            
+            with st.spinner("Analyzing..."):
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    full_prompt = f"System Context:\n{context}\n\nUser Question:\n{prompt}"
+                    response = model.generate_content(full_prompt)
+                    
+                    with st.chat_message("assistant"):
+                        st.markdown(response.text)
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                except Exception as e:
+                    st.error(f"API Error: {str(e)}")
