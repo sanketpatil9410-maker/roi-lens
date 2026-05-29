@@ -238,7 +238,7 @@ elif page == "GenAI Marketing Copilot":
             
             with st.spinner("Analyzing..."):
                 try:
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    model = genai.GenerativeModel('gemini-pro')
                     full_prompt = f"System Context:\n{context}\n\nUser Question:\n{prompt}"
                     response = model.generate_content(full_prompt)
                     
