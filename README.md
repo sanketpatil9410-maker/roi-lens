@@ -69,3 +69,6 @@ The `app/main.py` script serves a highly polished, interactive BI Dashboard.
 
 ## 🎯 Built For
 Created for the **E-Cell IIT Guwahati Summer Project Competition**. Evaluated on technical depth, business interpretation, clean architecture, and presentation quality.
+
+## Certification
+![E-Cell Certificate](certificate.jpg)
